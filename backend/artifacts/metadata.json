@@ -1,0 +1,28 @@
+{
+  "model_type": "RandomForestRegressor",
+  "n_estimators": 500,
+  "min_samples_leaf": 2,
+  "random_state": 42,
+  "train_rows": 13991,
+  "test_rows": 3498,
+  "metrics": {
+    "baseline_lag1": {
+      "mae": 12.694110920526015,
+      "rmse": 16.1510345695636,
+      "r2": 0.6243185076489399
+    },
+    "random_forest": {
+      "mae": 7.98996273945307,
+      "rmse": 10.36403124316904,
+      "r2": 0.8453049083564641
+    }
+  },
+  "train_time_range": [
+    "2009-01-02 00:00:00",
+    "2010-08-08 01:00:00"
+  ],
+  "test_time_range": [
+    "2010-08-08 02:00:00",
+    "2010-12-31 23:00:00"
+  ]
+}

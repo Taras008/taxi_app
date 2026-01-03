@@ -1,0 +1,20 @@
+{
+  "features": [
+    "temp",
+    "rhum",
+    "prcp",
+    "wspd",
+    "pres",
+    "hour_of_day",
+    "day_of_week",
+    "month",
+    "hour_sin",
+    "hour_cos",
+    "lag_1",
+    "lag_24",
+    "roll_24_mean"
+  ],
+  "target": "rides_count",
+  "time_col": "hour",
+  "tz_normalization": "parsed as utc then tz removed"
+}
