@@ -5,6 +5,7 @@ from typing import Dict, Tuple
 
 import httpx
 import pandas as pd
+import pytz
 
 OPEN_METEO_URL = "https://api.open-meteo.com/v1/forecast"
 
@@ -34,8 +35,20 @@ class WeatherClient:
         Caches by (lat, lon, start_date, end_date, timezone).
         """
         import time
-        start_date = start_dt.date()
-        end_date = end_dt.date()
+        
+        # Convert to timezone-aware if needed, then to target timezone
+        tz = pytz.timezone(timezone)
+        if start_dt.tzinfo is None:
+            start_dt = pytz.UTC.localize(start_dt)
+        if end_dt.tzinfo is None:
+            end_dt = pytz.UTC.localize(end_dt)
+        
+        # Convert to local timezone to get correct dates
+        start_dt_local = start_dt.astimezone(tz)
+        end_dt_local = end_dt.astimezone(tz)
+        
+        start_date = start_dt_local.date()
+        end_date = end_dt_local.date()
         key = (lat, lon, start_date.isoformat(), end_date.isoformat(), timezone)
 
         now = time.time()

@@ -9,7 +9,8 @@ from sklearn.metrics import mean_absolute_error, mean_squared_error, r2_score
 
 
 DATA_PATH = "hourly_demand_features.csv"
-ARTIFACTS_DIR = Path("artifacts")
+# Ensure artifacts are saved to backend/artifacts/ regardless of where script is run from
+ARTIFACTS_DIR = Path(__file__).parent.parent / "artifacts"
 ARTIFACTS_DIR.mkdir(exist_ok=True)
 
 FEATURES = [
