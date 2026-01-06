@@ -1,6 +1,8 @@
 from __future__ import annotations
 from datetime import datetime, timedelta
 from typing import Dict, List, Tuple
+import pandas as pd
+import pytz
 from app.services.lag_provider import BaselineLagProvider
 from app.services.feature_builder import build_features
 from app.services.weather_open_meteo import WeatherClient, WeatherPoint
@@ -17,13 +19,27 @@ async def get_weather_for_hour(
     dt: datetime,
 ) -> WeatherPoint:
     dt_h = floor_to_hour(dt)
+    
+    # Convert dt_h to the timezone used by the API
+    # If dt_h is timezone-aware, convert it; if naive, assume UTC
+    if dt_h.tzinfo is None:
+        dt_h = pytz.UTC.localize(dt_h)
+    
+    # Convert to the target timezone
+    tz = pytz.timezone(timezone)
+    dt_h_local = dt_h.astimezone(tz)
+    # Remove timezone info to match what API returns (naive datetime in local timezone)
+    dt_h_local_naive = dt_h_local.replace(tzinfo=None)
+    
     m = await weather_client.fetch_hourly_map(
         lat=lat, lon=lon,
         start_dt=dt_h,
         end_dt=dt_h,
         timezone=timezone,
     )
-    wp = m.get(dt_h)
+    
+    # Search using the local timezone version
+    wp = m.get(pd.Timestamp(dt_h_local_naive))
     if wp is None:
         raise ValueError("Weather API did not return data for the requested hour (timezone mismatch?)")
     return wp
@@ -73,6 +89,12 @@ async def forecast_range(
     """
     warnings: List[str] = []
     start_h = floor_to_hour(start_dt)
+    
+    # Convert to timezone-aware if needed
+    if start_h.tzinfo is None:
+        start_h = pytz.UTC.localize(start_h)
+    
+    tz = pytz.timezone(timezone)
     end_h = start_h + timedelta(hours=hours)
 
     weather_map = await weather_client.fetch_hourly_map(
@@ -82,7 +104,11 @@ async def forecast_range(
     preds: List[dict] = []
     for i in range(hours):
         ts = start_h + timedelta(hours=i)
-        wp = weather_map.get(ts)
+        # Convert to local timezone for lookup
+        ts_local = ts.astimezone(tz)
+        ts_local_naive = ts_local.replace(tzinfo=None)
+        
+        wp = weather_map.get(pd.Timestamp(ts_local_naive))
         if wp is None:
             raise ValueError(f"No weather for hour {ts}.")
         feats = build_features(ts, model_store.features, wp, lags=None)
